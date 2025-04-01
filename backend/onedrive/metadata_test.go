@@ -1,13 +1,44 @@
 package onedrive
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/rclone/rclone/backend/onedrive/api"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOrderPermissions(t *testing.T) {
+	testJSON := `[
+  {
+"id": "2",
+    "grantedToV2": {
+      "group": {
+        "id": "reviewers@cdsconsulting.org"
+      }
+    },
+    "roles": [
+      "write"
+    ]
+  },
+  {
+"id": "1",
+    "grantedToV2": {
+      "user": {
+        "id": "angie.scott@cdsconsulting.org"
+      }
+    },
+    "roles": [
+      "write"
+    ]
+  }
+]`
+
+	var testPerms []*api.PermissionsType
+	err := json.Unmarshal([]byte(testJSON), &testPerms)
+	require.NoError(t, err)
+
 	tests := []struct {
 		name     string
 		input    []*api.PermissionsType
@@ -53,6 +84,11 @@ func TestOrderPermissions(t *testing.T) {
 				{ID: "x"},
 				{ID: "y"},
 			},
+			expected: []string{"x", "y", "z"},
+		},
+		{
+			name:     "test JSON",
+			input:    testPerms,
 			expected: []string{"x", "y", "z"},
 		},
 	}
